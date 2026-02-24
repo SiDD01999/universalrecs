@@ -3,3 +3,9 @@ numpy
 scikit-learn
 streamlit
 matplotlib
+langgraph
+langchain
+langchain-openai
+langchain-community
+langchain-google-genai
+python-dotenv

@@ -1,8 +1,13 @@
 import streamlit as st
 import pandas as pd
 import time
+import os
+from dotenv import load_dotenv
 from src.recommender import RecommenderEngine
 from src.evaluator import Evaluator
+
+# Load environment variables
+load_dotenv()
 
 # Page Config
 st.set_page_config(page_title="UniversalRecs", layout="wide")
@@ -52,7 +57,7 @@ st.markdown("""
 
 # Title
 st.title("UniversalRecs 🎬")
-st.caption("Hybrid Recommendation Engine with content-based & collaborative filtering")
+st.caption("Hybrid Recommendation Engine powered by Gemini & Collaborative Filtering")
 
 # Initialize Engine (Cached)
 @st.cache_resource
@@ -61,15 +66,27 @@ def get_engine():
 
 engine = get_engine()
 
-# Sidebar - User Selection
+# --- Sidebar ---
 st.sidebar.header("User Profile")
 user_ids = sorted(engine.ratings['userId'].unique())
 selected_user = st.sidebar.selectbox("Select User", [0] + list(user_ids), format_func=lambda x: "New User" if x == 0 else f"User {x}")
 
-# Main Content
+st.sidebar.markdown("---")
+st.sidebar.header("⚙️ API Settings")
+env_key = os.getenv("GOOGLE_API_KEY")
+api_key = st.sidebar.text_input("Gemini API Key", value=env_key if env_key else "", type="password", help="Enter your Gemini API key here. It will override the one in .env if provided.")
+
+if api_key:
+    if not env_key or api_key != env_key:
+        st.sidebar.success("Using Manual API Key")
+    else:
+        st.sidebar.success("Using .env API Key")
+else:
+    st.sidebar.warning("No Gemini Key! Assistant will use keyword fallback.")
+
+# Main Content Logic
 if selected_user == 0:
     st.info("Welcome! As a new user, we'll show you what's popular.")
-    # Use a dummy fresh ID for prediction (e.g., max + 1)
     current_uid = max(user_ids) + 1 if user_ids else 1
     is_new = True
 else:
@@ -88,7 +105,6 @@ with col_recs:
     st.markdown(f"**Engine Mode:** `{method}`")
     
     for item in recs:
-        # Card-like layout
         with st.container():
             c1, c2 = st.columns([4, 1])
             with c1:
@@ -100,12 +116,10 @@ with col_recs:
                 </div>
                 """, unsafe_allow_html=True)
             with c2:
-                # Feedback Buttons
-                # Unique keys required for Streamlit buttons
                 if st.button("👍 Like", key=f"like_{item['movieId']}"):
                     engine.add_feedback(current_uid, item['movieId'], 5.0)
                     st.toast(f"Liked {item['title']}! Retraining...", icon="🎉")
-                    time.sleep(1) # slight pause
+                    time.sleep(1)
                     st.rerun()
                     
                 if st.button("👎 Dislike", key=f"dislike_{item['movieId']}"):
@@ -132,3 +146,41 @@ with col_stats:
     st.write(f"**Items:** {len(engine.movies)}")
     st.write(f"**Interactions:** {len(engine.ratings)}")
 
+# --- Agentic Chat Interface ---
+st.markdown("---")
+st.header("🤖 AI Assistant (Gemini Powered)")
+st.caption("Ask me anything! e.g., 'I want a funny movie' or 'What should I watch?'")
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("What are you looking for?"):
+    st.chat_message("user").markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    
+    from src.agent import workflow, AgentState
+    from langchain_core.messages import HumanMessage
+    
+    app_graph = workflow.compile()
+    
+    with st.spinner("Gemini is thinking..."):
+        initial_state = {
+            "messages": [HumanMessage(content=prompt)],
+            "user_id": current_uid,
+            "google_api_key": api_key
+        }
+        
+        try:
+            result = app_graph.invoke(initial_state)
+            response_text = result.get("final_response", "I'm not sure how to help with that.")
+        except Exception as e:
+            response_text = f"Error calling Gemini: {e}. Please check your API key."
+        
+        with st.chat_message("assistant"):
+            st.markdown(response_text)
+        
+        st.session_state.messages.append({"role": "assistant", "content": response_text})

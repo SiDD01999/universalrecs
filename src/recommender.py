@@ -40,7 +40,9 @@ class RecommenderEngine:
         
         print("Training Collaborative Model...")
         # 2. Collaborative: Matrix Factorization (SVD) on User-Item Matrix
-        self.user_item_matrix = self.ratings.pivot(index='userId', columns='movieId', values='rating').fillna(0)
+        # Drop duplicates to avoid pivot error
+        ratings_unique = self.ratings.drop_duplicates(subset=['userId', 'movieId'], keep='last')
+        self.user_item_matrix = ratings_unique.pivot(index='userId', columns='movieId', values='rating').fillna(0)
         
         # Only fit if we have enough data
         if not self.user_item_matrix.empty:
@@ -179,9 +181,6 @@ class RecommenderEngine:
         
         # 2. Update file (append mode would be faster but for safety we rewrite or append)
         # We'll just append to the csv
-        pd.DataFrame([new_row]).to_csv(self.movies.replace('movies.csv', 'ratings.csv'), mode='a', header=False, index=False) # Hacky path retrieval from data_loader constants if imported, but here strictly using self.movies path or similar?
-        # Actually self.movies doesn't store path.
-        # Let's import RATINGS_FILE from .data_loader if possible or just use hardcoded path from logic.
         # Re-importing inside method to be safe or assuming standard path.
         from .data_loader import RATINGS_FILE
         pd.DataFrame([new_row]).to_csv(RATINGS_FILE, mode='a', header=False, index=False)
@@ -190,6 +189,30 @@ class RecommenderEngine:
         
         # 3. Retrain
         self.train_models()
+
+    def search_items(self, query: str, n: int = 5) -> list:
+        """
+        Simple text search for items based on title and genres.
+        Returns a list of dictionaries with 'movieId', 'title', 'genres'.
+        """
+        # Case-insensitive search
+        mask = self.movies['title'].str.contains(query, case=False, na=False) | \
+               self.movies['genres'].str.contains(query, case=False, na=False) | \
+               self.movies['description'].str.contains(query, case=False, na=False)
+        
+        results = self.movies[mask].head(n)
+        
+        # Format output
+        output = []
+        for mid, row in results.iterrows():
+            output.append({
+                'movieId': mid,
+                'title': row['title'],
+                'genres': row['genres'],
+                'score': 1.0, # Dummy score for search match
+                'reason': f"Matched search query: '{query}'"
+            })
+        return output
 
 
 if __name__ == "__main__":

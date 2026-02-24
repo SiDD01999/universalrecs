@@ -44,6 +44,18 @@ python -m streamlit run app.py
     -   **RMSE Error**: Should be a value roughly between `0.5` and `1.5` (lower is better, dependent on data).
     -   **Catalog Coverage**: Should show the percentage of items the system is capable of recommending.
 
-## 📝 Notes
--   The app uses **dummy data** generated on the fly since no external dataset was provided.
--   Data is saved to `data/movies.csv` and `data/ratings.csv`. You can delete these files to reset the simulation.
+## 🧪 3. Automated Testing
+We use `pytest` for automated unit testing of the recommender engine and agent logic.
+
+### Running Tests
+To run all tests (ensure you are in the project root):
+```bash
+python -m pytest tests/
+```
+
+**Note on AI Agent Tests**:
+The `test_agent.py` requires a working `torch` installation and an `OPENAI_API_KEY` (or it will use the keyword fallback). If you encounter DLL initialization errors with `torch`, ensure you have the [Microsoft Visual C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe) installed.
+
+### Test Coverage
+- `test_recommender.py`: Verifies hybrid logic, feedback loops, and data loading.
+- `test_agent.py`: Verifies tool-calling logic and routing.
