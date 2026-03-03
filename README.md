@@ -4,13 +4,17 @@
 ## 📖 Overview
 **UniversalRecs** is a recommendation system designed to predict user preferences for unseen items. It leverages a **Hybrid Approach**, combining the strengths of Content-Based Filtering and Collaborative Filtering to provide accurate, personalized, and explainable recommendations.
 
-The system features an **AI Assistant powered by Google Gemini**, a **Cold Start** handler for new users, and an interactive **Feedback Loop** that learns from user interactions in real-time.
+The system features an **AI Assistant powered by Google Gemini API**, a **Cold Start** handler for new users, and an interactive **Feedback Loop** that learns from user interactions in real-time.
 
-## 🚀 Key Features
+## Key Features
 
 *   **Hybrid Engine**: Combines **Content-Based** (TF-IDF + Truncated SVD) and **Collaborative Filtering** (Matrix Factorization) for robust scoring.
+<<<<<<< HEAD
 *   **🔍 Vector Search**: Semantic movie search using **ChromaDB** and **sentence-transformers** (384D embeddings) for content-based recommendations.
 *   **🤖 Gemini AI Assistant**: An agentic chat interface built with **LangGraph** and **Google Gemini** that can search for movies and provide personalized recommendations via natural language.
+=======
+*   **Gemini AI Assistant**: An agentic chat interface built with **LangGraph** and **Google Gemini** that can search for movies and provide personalized recommendations via natural language.
+>>>>>>> 5fedf66c3885ae338c3deec63f9b54bafe190e2b
 *   **Explainability**: Tells you *why* a recommendation was made (e.g., *"Because you liked Movie X"* or *"Users like you also enjoyed this"*).
 *   **Cold Start Handler**: Automatically falls back to a **Popularity-Based** model for new users with no history.
 *   **Feedback Loop**: Interactive **Like/Dislike** buttons that instantly update the dataset and trigger model retraining.
@@ -18,7 +22,7 @@ The system features an **AI Assistant powered by Google Gemini**, a **Cold Start
 *   **Automated Testing**: Comprehensive unit tests for core logic and agent routing using `pytest`.
 *   **Streamlit UI**: A modern, responsive dashboard with a premium dark-mode aesthetic and API configuration settings.
 
-## 🧩 Tech Stack
+## Tech Stack
 *   **LLM & Orchestration**: Google Gemini 1.5, LangChain, LangGraph
 *   **Vector Store**: ChromaDB, Sentence Transformers
 *   **Data Science**: Pandas, NumPy, Scikit-learn, PyTorch
@@ -57,13 +61,13 @@ The system features an **AI Assistant powered by Google Gemini**, a **Cold Start
 
 7.  **Access the UI**: Open your browser at `http://localhost:8501`.
 
-## 🧪 Testing
+## Testing
 Run automated tests to verify the engine and agent logic:
 ```bash
 python -m pytest tests/
 ```
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 UniversalRecs/
@@ -89,9 +93,10 @@ UniversalRecs/
 └── VECTOR_STORE_SETUP.md       # Vector Store Setup Guide
 ```
 
-## 📝 Simulation
+## Simulation
 The system includes a **Data Generator** (`data_loader.py`) that automatically creates synthetic data if no files are found. This allows for immediate testing of the hybrid logic and feedback loops.
 
+<<<<<<< HEAD
 ## 🔮 Roadmap & Future Improvements
 
 ### Completed
@@ -106,3 +111,9 @@ The system includes a **Data Generator** (`data_loader.py`) that automatically c
 *   📋 Multi-modal embeddings (posters, trailers, reviews)
 *   📋 Deploy as a containerized **Docker** application
 *   📋 A/B testing framework for recommendation strategies
+=======
+## Future Improvements
+*   Replace CSV storage with **PostgreSQL**.
+*   Implement **Deep Learning** embeddings for more complex collaborative filtering.
+*   Deploy as a containerized **Docker** application.
+>>>>>>> 5fedf66c3885ae338c3deec63f9b54bafe190e2b
