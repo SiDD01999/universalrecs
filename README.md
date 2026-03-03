@@ -9,12 +9,8 @@ The system features an **AI Assistant powered by Google Gemini API**, a **Cold S
 ## Key Features
 
 *   **Hybrid Engine**: Combines **Content-Based** (TF-IDF + Truncated SVD) and **Collaborative Filtering** (Matrix Factorization) for robust scoring.
-<<<<<<< HEAD
 *   **🔍 Vector Search**: Semantic movie search using **ChromaDB** and **sentence-transformers** (384D embeddings) for content-based recommendations.
 *   **🤖 Gemini AI Assistant**: An agentic chat interface built with **LangGraph** and **Google Gemini** that can search for movies and provide personalized recommendations via natural language.
-=======
-*   **Gemini AI Assistant**: An agentic chat interface built with **LangGraph** and **Google Gemini** that can search for movies and provide personalized recommendations via natural language.
->>>>>>> 5fedf66c3885ae338c3deec63f9b54bafe190e2b
 *   **Explainability**: Tells you *why* a recommendation was made (e.g., *"Because you liked Movie X"* or *"Users like you also enjoyed this"*).
 *   **Cold Start Handler**: Automatically falls back to a **Popularity-Based** model for new users with no history.
 *   **Feedback Loop**: Interactive **Like/Dislike** buttons that instantly update the dataset and trigger model retraining.
@@ -96,7 +92,6 @@ UniversalRecs/
 ## Simulation
 The system includes a **Data Generator** (`data_loader.py`) that automatically creates synthetic data if no files are found. This allows for immediate testing of the hybrid logic and feedback loops.
 
-<<<<<<< HEAD
 ## 🔮 Roadmap & Future Improvements
 
 ### Completed
@@ -108,12 +103,7 @@ The system includes a **Data Generator** (`data_loader.py`) that automatically c
 
 ### Planned
 *   📋 Replace CSV storage with **PostgreSQL**
+*   📋 Implement **Deep Learning** embeddings for more complex collaborative filtering
 *   📋 Multi-modal embeddings (posters, trailers, reviews)
 *   📋 Deploy as a containerized **Docker** application
 *   📋 A/B testing framework for recommendation strategies
-=======
-## Future Improvements
-*   Replace CSV storage with **PostgreSQL**.
-*   Implement **Deep Learning** embeddings for more complex collaborative filtering.
-*   Deploy as a containerized **Docker** application.
->>>>>>> 5fedf66c3885ae338c3deec63f9b54bafe190e2b
