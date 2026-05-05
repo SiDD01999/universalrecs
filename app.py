@@ -72,6 +72,19 @@ user_ids = sorted(engine.ratings['userId'].unique())
 selected_user = st.sidebar.selectbox("Select User", [0] + list(user_ids), format_func=lambda x: "New User" if x == 0 else f"User {x}")
 
 st.sidebar.markdown("---")
+st.sidebar.header("🎚️ Hybrid Mix")
+w_content = st.sidebar.slider(
+    "Content weight",
+    min_value=0.0,
+    max_value=1.0,
+    value=0.5,
+    step=0.05,
+    help="Higher = more 'similar to movies you liked'. Lower = more 'what similar users watched'."
+)
+w_collab = 1.0 - w_content
+st.sidebar.caption(f"Collaborative weight: **{w_collab:.2f}**")
+
+st.sidebar.markdown("---")
 st.sidebar.header("⚙️ API Settings")
 env_key = os.getenv("GOOGLE_API_KEY")
 api_key = st.sidebar.text_input("Gemini API Key", value=env_key if env_key else "", type="password", help="Enter your Gemini API key here. It will override the one in .env if provided.")
@@ -100,9 +113,14 @@ with col_recs:
     st.subheader(f"Top Picks for {('New User' if is_new else f'User {current_uid}')}")
     
     with st.spinner("Crunching the numbers..."):
-        recs, method = engine.recommend(current_uid, n=10)
+        recs, method = engine.recommend(
+            current_uid,
+            n=10,
+            weight_content=w_content,
+            weight_collab=w_collab,
+        )
     
-    st.markdown(f"**Engine Mode:** `{method}`")
+    st.markdown(f"**Engine Mode:** `{method}`  |  **Mix:** content `{w_content:.2f}` / collab `{w_collab:.2f}`")
     
     for item in recs:
         with st.container():
