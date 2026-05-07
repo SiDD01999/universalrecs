@@ -111,22 +111,23 @@ class RecommenderEngine:
         explanation_sources = {} # Store which movie caused the recommendation
         
         if liked_movies:
+            # Track best (highest) similarity per target so explanations
+            # point at the liked movie most similar to the recommendation,
+            # not just whichever was iterated first.
+            best_sim = {}
             for liked_id in liked_movies:
                 if liked_id in self.movie_id_to_idx:
                     idx = self.movie_id_to_idx[liked_id]
-                    sim_scores = list(enumerate(self.content_sim_matrix[idx]))
-                    
-                    for i, score in sim_scores:
+                    sim_row = self.content_sim_matrix[idx]
+        
+                    for i, score in enumerate(sim_row):
                         target_id = self.idx_to_movie_id[i]
-                        # Accumulate similarity scores
-                        if target_id not in content_scores:
-                            content_scores[target_id] = 0
+                        # Accumulate similarity for ranking
+                        content_scores[target_id] = content_scores.get(target_id, 0.0) + score
+                        # Remember the strongest single source for explanation
+                        if score > best_sim.get(target_id, -1.0):
+                            best_sim[target_id] = score
                             explanation_sources[target_id] = liked_id
-                        content_scores[target_id] += score
-                        
-                        # Keep track of the strongest similarity for explanation
-                        if score > 0 and (content_scores[target_id] - score < score): # Heuristic: if this new score is dominant
-                             explanation_sources[target_id] = liked_id
 
         # 4. Hybrid Fusion
         final_scores = []
