@@ -85,6 +85,17 @@ w_collab = 1.0 - w_content
 st.sidebar.caption(f"Collaborative weight: **{w_collab:.2f}**")
 
 st.sidebar.markdown("---")
+st.sidebar.header("🎯 Diversity (MMR)")
+diversity = st.sidebar.slider(
+    "Diversity",
+    min_value=0.0,
+    max_value=1.0,
+    value=0.0,
+    step=0.05,
+    help="0 = best matches first (may be repetitive). Higher = spread results across styles."
+)
+
+st.sidebar.markdown("---")
 st.sidebar.header("⚙️ API Settings")
 env_key = os.getenv("GOOGLE_API_KEY")
 api_key = st.sidebar.text_input("Gemini API Key", value=env_key if env_key else "", type="password", help="Enter your Gemini API key here. It will override the one in .env if provided.")
@@ -118,9 +129,10 @@ with col_recs:
             n=10,
             weight_content=w_content,
             weight_collab=w_collab,
+            diversity=diversity,
         )
     
-    st.markdown(f"**Engine Mode:** `{method}`  |  **Mix:** content `{w_content:.2f}` / collab `{w_collab:.2f}`")
+    st.markdown(f"**Engine Mode:** `{method}`  |  **Mix:** content `{w_content:.2f}` / collab `{w_collab:.2f}`  |  **Diversity:** `{diversity:.2f}`")
     
     for item in recs:
         with st.container():

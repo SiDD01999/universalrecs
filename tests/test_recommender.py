@@ -37,6 +37,14 @@ def test_recommend_existing_user(engine):
         reason = r["reason"]
         assert any(reason.startswith(p) for p in ["Because you liked", "Users like you also enjoyed", "Popular Outcome"])
 
+def test_mmr_diversity_changes_order(engine):
+    """MMR with high diversity should reorder results compared to diversity=0."""
+    base, base_method = engine.recommend(user_id=1, n=10, diversity=0.0)
+    diverse, diverse_method = engine.recommend(user_id=1, n=10, diversity=0.8)
+    assert base_method == "Hybrid"
+    assert "MMR" in diverse_method
+    assert [r['movieId'] for r in base] != [r['movieId'] for r in diverse]
+
 def test_add_feedback(engine):
     initial_count = len(engine.ratings)
     # Use a likely unique item for this user to test addition

@@ -77,7 +77,7 @@ class RecommenderEngine:
             })
         return results
 
-    def recommend(self, user_id, n=10, weight_content=0.5, weight_collab=0.5):
+    def recommend(self, user_id, n=10, weight_content=0.5, weight_collab=0.5, diversity=0.0):
         """Hybrid Recommendation Engine."""
         
         # 1. NEW USER CHECK
@@ -170,9 +170,61 @@ class RecommenderEngine:
                 'reason': reason
             })
             
-        # Sort and return
+        # Sort and return — apply MMR reranking when diversity > 0
+        if diversity > 0.0:
+            return self._mmr_rerank(final_scores, n, diversity), f"Hybrid + MMR (d={diversity:.2f})"
+
         final_scores.sort(key=lambda x: x['score'], reverse=True)
         return final_scores[:n], "Hybrid"
+
+    def _mmr_rerank(self, scored, n, diversity):
+        """
+        Maximal Marginal Relevance reranking.
+
+        diversity = 0.0 -> pure relevance (same as plain sort by score)
+        diversity = 1.0 -> pure diversity (ignore score, spread across catalog)
+
+        Uses self.content_sim_matrix as the item-item similarity for the
+        redundancy penalty.
+        """
+        if diversity <= 0.0 or len(scored) <= 1:
+            scored.sort(key=lambda x: x['score'], reverse=True)
+            return scored[:n]
+
+        lam = 1.0 - diversity  # weight on relevance; (1-lam) is diversity weight
+
+        # Cap candidate pool — MMR is O(n*k), no need to scan all movies
+        pool = sorted(scored, key=lambda x: x['score'], reverse=True)[:max(n * 5, 50)]
+
+        # Normalize relevance scores into [0, 1] so they're comparable to similarities
+        max_s = max((c['score'] for c in pool), default=1.0) or 1.0
+        for c in pool:
+            c['_rel'] = c['score'] / max_s
+
+        selected, selected_idxs = [], []
+        while pool and len(selected) < n:
+            best_i, best_mmr = 0, -float('inf')
+            for i, cand in enumerate(pool):
+                cand_idx = self.movie_id_to_idx.get(cand['movieId'])
+                if cand_idx is None:
+                    continue
+                if not selected_idxs:
+                    penalty = 0.0
+                else:
+                    penalty = max(self.content_sim_matrix[cand_idx][s] for s in selected_idxs)
+                mmr = lam * cand['_rel'] - (1.0 - lam) * penalty
+                if mmr > best_mmr:
+                    best_mmr, best_i = mmr, i
+
+            chosen = pool.pop(best_i)
+            chosen_idx = self.movie_id_to_idx.get(chosen['movieId'])
+            if chosen_idx is not None:
+                selected.append(chosen)
+                selected_idxs.append(chosen_idx)
+
+        for c in selected:
+            c.pop('_rel', None)
+        return selected
 
     def add_feedback(self, user_id, movie_id, rating):
         """Adds a new interaction and retrains models."""
